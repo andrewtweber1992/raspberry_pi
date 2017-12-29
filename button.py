@@ -62,12 +62,13 @@ def button_callback(channel):
 try:
     # Clear image buffer by drawing a black filled box.
     draw.rectangle((0,0,width,height), outline=0, fill=0)
-    draw.text((width/2, height/2), "test", font=font, fill=255)
+    draw.text((width/3, height/3), "loading...", font=font, fill=255)
     # Draw the image buffer.
     disp.image(image)
     disp.display()
     
     GPIO.add_event_detect(button_pin, GPIO.FALLING, callback=button_callback, bouncetime=500)
+    time.sleep(2)
     GPIO.add_event_detect(button_pin2, GPIO.FALLING, callback=button_callback, bouncetime=500)
 
     while True:
