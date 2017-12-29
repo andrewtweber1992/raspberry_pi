@@ -103,6 +103,7 @@ def risk_refresh_display():
     global risk_player_1_score
     global risk_player_2_score
     global risk_player_state
+    global risk_current_turn_troop_counter
 
     num_troops_to_draw = 0
     draw_string = ""
@@ -111,7 +112,7 @@ def risk_refresh_display():
     else:
         num_troops_to_draw = risk_player_2_score / 3
 
-    draw_string = "Draw " + str(num_troops_to_draw)
+    draw_string = "Draw " + str(risk_current_turn_troop_counter)
     
     #update the scores to the display
     draw.rectangle((0,0,width,height), outline=0, fill=0)
@@ -190,9 +191,19 @@ def risk_game_over():
     disp.display()
     time.sleep(2)
 
+#method to switch turns
 def risk_attached_button_callback(channel):
     global risk_player_state
+    global risk_player_1_score
+    global risk_player_2_score
+    global risk_current_turn_troop_counter
+    
     risk_player_state = not risk_player_state
+    if risk_player_state == True:
+        risk_current_turn_troop_counter = risk_player_1_score / 3
+    else:
+        risk_current_turn_troop_counter = risk_player_2_score / 3
+        
     risk_refresh_display()
     
 
@@ -200,9 +211,12 @@ def play_risk():
     global risk_player_1_score
     global risk_player_2_score
     global risk_game_state
+    global risk_current_turn_troop_counter
     
     risk_player_1_score = 21
     risk_player_2_score = 21
+    risk_current_turn_troop_counter = 21 / 3
+            
     
     # Clear image buffer by drawing a black filled box.
     draw.rectangle((0,0,width,height), outline=0, fill=0)
