@@ -99,6 +99,16 @@ def get_risk_first_player():
 def risk_refresh_display():
     global risk_player_1_score
     global risk_player_2_score
+    global risk_player_state
+
+    num_troops_to_draw = 0
+    draw_string = ""
+    if risk_player_state == True:
+        num_troops_to_draw = risk_player_1_score / 3
+    else:
+        num_troops_to_draw = risk_player_2_score / 3
+
+    draw_string = "Draw " + str(num_troops_to_draw)
     
     #update the scores to the display
     draw.rectangle((0,0,width,height), outline=0, fill=0)
@@ -106,10 +116,25 @@ def risk_refresh_display():
     #p1
     draw.text((width-15,0), "P1", font=font, fill=255)
     draw.text((width-15,10), str(risk_player_1_score), font=font, fill=255)
-
+    draw.line((width-20, 0, width-20, height), fill=255)
+    
     #p2
     draw.text((5,0), "P2", font=font, fill=255)
     draw.text((5,10), str(risk_player_2_score), font=font, fill=255)
+    draw.line((20, 0, 20, height), fill=255)
+
+    #middle section
+    #show turn
+    if risk_player_state == True: #first player
+        draw.text((width/3, 0), "P1 Turn", font=font, fill=255)
+    else:
+        draw.text((width/3, 0), "P2 Turn", font=font, fill=255)
+    draw.text((width/3, height/4), draw_string, font=font, fill=255)
+    #draw.text((width/3, height/2), str(num_troops_to_draw), font=font, fill=255)
+    draw.text((width/3, height/2), "Troops", font=font, fill=255)
+    
+    #show how many troops to draw
+    
 
     disp.image(image)
     disp.display()
@@ -207,6 +232,10 @@ def play_risk():
     
     GPIO.remove_event_detect(button_pin)
     GPIO.remove_event_detect(button_pin2)
+
+    risk_player_1_score = 21
+    risk_player_2_score = 21
+    risk_game_state = True
     
 
 def play_chess():
