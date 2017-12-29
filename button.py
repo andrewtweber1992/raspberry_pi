@@ -111,9 +111,20 @@ def play_risk():
     GPIO.add_event_detect(button_pin, GPIO.FALLING, callback=button_callback, bouncetime=500)
     time.sleep(2)
     GPIO.add_event_detect(button_pin2, GPIO.FALLING, callback=button_callback, bouncetime=500)
-    time.sleep(2)
+    time.sleep(.5)
     first_player = get_risk_first_player()
     
+
+def play_chess():
+    draw.rectangle((0,0,width,height), outline=0, fill=0)
+    draw.text((width/3, height/4), "Chess Not", font=font, fill=255)
+    #draw.text((width/3, height/2), "Not", font=font, fill=255)
+    draw.text((width/4, (height/2)), "Available :(", font=font, fill=255)
+    # Draw the image buffer.
+    disp.image(image)
+    disp.display()
+    time.sleep(2)
+    return 0
 
 try:
     # Clear image buffer by drawing a black filled box.
@@ -132,11 +143,15 @@ try:
         while True:
             if GPIO.input(button_pin) == 0:
                 print("button_pin clicked")
-                break
+                play_chess()
             if GPIO.input(button_pin2) == 0:
                 print("button_pin2 clicked")
                 play_risk()
-                break
+            draw.rectangle((0,0,width,height), outline=0, fill=0)
+            draw.text((width/3, height/4), "< Risk", font=font, fill=255)
+            draw.text((width/3, 2*(height/4)), "Chess >", font=font, fill=255)
+            disp.image(image)
+            disp.display()
         print("menu screen button clicked")
         
         time.sleep(60)
