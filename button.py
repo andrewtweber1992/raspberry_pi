@@ -15,9 +15,11 @@ GPIO.setmode(GPIO.BCM)
 
 button_pin = 7
 button_pin2 = 12
+attached_button_pin = 17
 
 GPIO.setup(button_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(button_pin2, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(attached_button_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 # 128x32 display with hardware I2C:
 disp = Adafruit_SSD1306.SSD1306_128_32(rst=RST)
@@ -56,6 +58,7 @@ risk_player_state = True
 risk_player_1_score = 0
 risk_player_2_score = 0
 risk_game_state = True
+risk_current_turn_troop_counter = 0
 
 def risk_button_callback(channel):
     if channel == button_pin:
@@ -186,6 +189,11 @@ def risk_game_over():
     disp.image(image)
     disp.display()
     time.sleep(2)
+
+def risk_attached_button_callback(channel):
+    global risk_player_state
+    risk_player_state = not risk_player_state
+    risk_refresh_display()
     
 
 def play_risk():
@@ -208,7 +216,9 @@ def play_risk():
     GPIO.add_event_detect(button_pin, GPIO.FALLING, callback=risk_button_callback, bouncetime=500)
     time.sleep(2)
     GPIO.add_event_detect(button_pin2, GPIO.FALLING, callback=risk_button_callback, bouncetime=500)
-
+    time.sleep(.2)
+    GPIO.add_event_detect(attached_button_pin, GPIO.FALLING, callback=risk_attached_button_callback, bouncetime=500)
+    
     draw.rectangle((0,0,width,height), outline=0, fill=0)
     draw.text((width/3, height/3), "Starting...", font=font, fill=255)
     # Draw the image buffer.
