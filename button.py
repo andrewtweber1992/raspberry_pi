@@ -1,5 +1,6 @@
 import RPi.GPIO as GPIO
 import time
+import math
 
 import Adafruit_GPIO.SPI as SPI
 import Adafruit_SSD1306
@@ -206,6 +207,10 @@ def risk_game_over():
     global risk_player_1_score
     global risk_player_2_score
 
+    GPIO.remove_event_detect(button_pin)
+    GPIO.remove_event_detect(button_pin2)
+    GPIO.remove_event_detect(attached_button_pin)
+
     disp.clear()
     disp.display()
 
@@ -218,17 +223,93 @@ def risk_game_over():
 
     disp.clear()
     disp.display()
+    time.sleep(2)
+
+    winner_string = ""
     
-    draw.rectangle((0,0,width,height), outline=0, fill=0)
     if risk_player_1_score > risk_player_2_score:
-        draw.text((width/3, height/4), "Player 1", font=font, fill=255)
-        draw.text((width/3, height/2), "Wins!!", font=font, fill=255)
+        #draw.text((width/3, height/4), "Player 1", font=font, fill=255)
+        #draw.text((width/3, height/2), "Wins!!", font=font, fill=255)
+        winner_string = "Player 1 Wins!!!"
     else:
-        draw.text((width/3, height/4), "Player 2", font=font, fill=255)
-        draw.text((width/3, height/2), "Wins!!", font=font, fill=255)
+        #draw.text((width/3, height/4), "Player 2", font=font, fill=255)
+        #draw.text((width/3, height/2), "Wins!!", font=font, fill=255)
+        winner_string = "Player 2 Wins !!!"
+
+    amplitude = height/8
+    text_height = height/3
+    velocity = -5
+    startpos = width
+    maxwidth, unused = draw.textsize(winner_string, font=font)
+    pos = startpos
+    winner_counter = 0
+    while True:
+        #if winner_counter == 2:
+            #break
+        #else:
+            #winner_counter += 1
+        # Clear image buffer by drawing a black filled box.
+        draw.rectangle((0,0,width,height), outline=0, fill=0)
+        # Enumerate characters and draw them offset vertically based on a sine wave.
+        x = pos
+        for i, c in enumerate(winner_string):
+            # Stop drawing if off the right side of screen.
+            if x > width:
+                break
+            # Calculate width but skip drawing if off the left side of screen.
+            if x < -10:
+                char_width, char_height = draw.textsize(c, font=font)
+                x += char_width
+                continue
+            # Calculate offset from sine wave.
+            y = (height/4)+math.floor(amplitude*math.sin(x/float(width)*2.0*math.pi))
+            # Draw text.
+            draw.text((x, y), c, font=font, fill=255)
+            # Increment x position based on chacacter width.
+            char_width, char_height = draw.textsize(c, font=font)
+            x += char_width
+        # Draw the image buffer.
+        disp.image(image)
+        disp.display()
+        # Move position for next frame.
+        pos += velocity
+        # Start over if text has scrolled completely off left side of screen.
+        if pos < -maxwidth:
+            break
+        # Pause briefly before drawing next frame.
+        time.sleep(0.1)  
+
+
+    draw.rectangle((0,0,width,height), outline=0, fill=0)
+    draw.text((10, height/3), winner_string, font=font, fill=255)
     disp.image(image)
     disp.display()
-    time.sleep(2)
+    time.sleep(.7)
+    disp.clear()
+    disp.display()
+    time.sleep(.2)
+
+    draw.rectangle((0,0,width,height), outline=0, fill=0)
+    draw.text((10, height/3), winner_string, font=font, fill=255)
+    disp.image(image)
+    disp.display()
+    time.sleep(.7)
+    disp.clear()
+    disp.display()
+    time.sleep(.2)
+
+    draw.rectangle((0,0,width,height), outline=0, fill=0)
+    draw.text((10, height/3), winner_string, font=font, fill=255)
+    disp.image(image)
+    disp.display()
+    time.sleep(.7)
+    
+    #disp.image(image)
+    #disp.display()
+
+    disp.clear()
+    disp.display()
+    time.sleep(1)
 
 #method to switch turns
 def risk_attached_button_callback(channel):
@@ -293,9 +374,7 @@ def play_risk():
     disp.clear()
     disp.display()
     
-    GPIO.remove_event_detect(button_pin)
-    GPIO.remove_event_detect(button_pin2)
-    GPIO.remove_event_detect(attached_button_pin)
+    
 
     risk_player_1_score = 21
     risk_player_2_score = 21
