@@ -53,19 +53,18 @@ loop_running = True
 
 #risk global variables
 risk_player_state = True
+risk_player_1_score = 0
+risk_player_2_score = 0
+risk_game_state = True
 
-def button_callback(channel):
-    global counter
-    global loop_running
-    #loop_running = False
-    print(counter)
-    counter += 1
-
-#def play_chess():
-
-#def risk_button_callback():
+def risk_button_callback(channel):
+    if channel == button_pin:
+        risk_add_player_score(1)
+    elif channel == button_pin2:
+        risk_add_player_score(2)
 
 def get_risk_first_player():
+    global risk_player_state
     draw.rectangle((0,0,width,height), outline=0, fill=0)
     draw.text(((width/3)+3, height/4), "First", font=font, fill=255)
     draw.text((width/3, height/2), "Player?", font=font, fill=255)
@@ -75,12 +74,14 @@ def get_risk_first_player():
     return_player = -1
     
     while True:
+        draw.rectangle((0,0,width,height), outline=0, fill=0)
         if GPIO.input(button_pin) == 0:
-            draw.rectangle((0,0,width,height), outline=0, fill=0)
             return_player = 1
+            risk_player_state = True
             break
         if GPIO.input(button_pin2) == 0:
             return_player = 2
+            risk_player_state = False
             break
     draw.rectangle((0,0,width,height), outline=0, fill=0)
     if return_player == 1:
@@ -91,15 +92,85 @@ def get_risk_first_player():
         draw.text((width/3, height/2), "Selected", font=font, fill=255)
     disp.image(image)
     disp.display()
-    time.sleep(2)
-    disp.clear()
-    disp.display()
     time.sleep(.5)
     
     return return_player
+
+def risk_refresh_display():
+    global risk_player_1_score
+    global risk_player_2_score
+    
+    #update the scores to the display
+    draw.rectangle((0,0,width,height), outline=0, fill=0)
+
+    #p1
+    draw.text((width-15,0), "P1", font=font, fill=255)
+    draw.text((width-15,10), str(risk_player_1_score), font=font, fill=255)
+
+    #p2
+    draw.text((5,0), "P2", font=font, fill=255)
+    draw.text((5,10), str(risk_player_2_score), font=font, fill=255)
+
+    disp.image(image)
+    disp.display()
+
+def risk_add_player_score(player):
+    global risk_player_1_score
+    global risk_player_2_score
+    global risk_game_state
+
+    if player == 1:
+        risk_player_1_score +=1
+        risk_player_2_score -= 1
+    elif player == 2:
+        risk_player_2_score += 1
+        risk_player_1_score -= 1
+
+    if risk_player_1_score == 0 or risk_player_2_score == 0:
+        risk_game_state = False
+        time.sleep(1)
+        #risk_game_over()
+    
+    #make call to update scores
+    risk_refresh_display()
+
+def risk_game_over():
+    global risk_player_1_score
+    global risk_player_2_score
+
+    disp.clear()
+    disp.display()
+
+    draw.rectangle((0,0,width,height), outline=0, fill=0)
+    draw.text((width/3, height/4), "Game", font=font, fill=255)
+    draw.text((width/3, height/2), "Over!", font=font, fill=255)
+    disp.image(image)
+    disp.display()
+    time.sleep(2)
+
+    disp.clear()
+    disp.display()
+    
+    draw.rectangle((0,0,width,height), outline=0, fill=0)
+    if risk_player_1_score > risk_player_2_score:
+        draw.text((width/3, height/4), "Player 1", font=font, fill=255)
+        draw.text((width/3, height/2), "Wins!!", font=font, fill=255)
+    else:
+        draw.text((width/3, height/4), "Player 2", font=font, fill=255)
+        draw.text((width/3, height/2), "Wins!!", font=font, fill=255)
+    disp.image(image)
+    disp.display()
+    time.sleep(2)
     
 
 def play_risk():
+    global risk_player_1_score
+    global risk_player_2_score
+    global risk_game_state
+    
+    risk_player_1_score = 21
+    risk_player_2_score = 21
+    
     # Clear image buffer by drawing a black filled box.
     draw.rectangle((0,0,width,height), outline=0, fill=0)
     draw.text((width/3, height/4), "loading", font=font, fill=255)
@@ -107,12 +178,35 @@ def play_risk():
     # Draw the image buffer.
     disp.image(image)
     disp.display()
-    
-    GPIO.add_event_detect(button_pin, GPIO.FALLING, callback=button_callback, bouncetime=500)
     time.sleep(2)
-    GPIO.add_event_detect(button_pin2, GPIO.FALLING, callback=button_callback, bouncetime=500)
-    time.sleep(.5)
     first_player = get_risk_first_player()
+    GPIO.add_event_detect(button_pin, GPIO.FALLING, callback=risk_button_callback, bouncetime=500)
+    time.sleep(2)
+    GPIO.add_event_detect(button_pin2, GPIO.FALLING, callback=risk_button_callback, bouncetime=500)
+
+    draw.rectangle((0,0,width,height), outline=0, fill=0)
+    draw.text((width/3, height/3), "Starting...", font=font, fill=255)
+    # Draw the image buffer.
+    disp.image(image)
+    disp.display()
+    time.sleep(1.5)
+
+    disp.clear()
+    disp.display()
+
+    risk_refresh_display()
+    while True:
+        time.sleep(.5)
+        if risk_game_state == False:        
+            time.sleep(1)
+            risk_game_over()
+            break
+        
+    disp.clear()
+    disp.display()
+    
+    GPIO.remove_event_detect(button_pin)
+    GPIO.remove_event_detect(button_pin2)
     
 
 def play_chess():
@@ -142,10 +236,8 @@ try:
         disp.display()
         while True:
             if GPIO.input(button_pin) == 0:
-                print("button_pin clicked")
                 play_chess()
             if GPIO.input(button_pin2) == 0:
-                print("button_pin2 clicked")
                 play_risk()
             draw.rectangle((0,0,width,height), outline=0, fill=0)
             draw.text((width/3, height/4), "< Risk", font=font, fill=255)
