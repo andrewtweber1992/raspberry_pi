@@ -60,8 +60,10 @@ risk_player_1_score = 0
 risk_player_2_score = 0
 risk_game_state = True
 risk_current_turn_troop_counter = 0
+risk_nacho_turn_counter = 0
 
 def risk_button_callback(channel):
+    global risk_nacho_turn_counter
     if channel == button_pin:
         risk_add_player_score(1)
     elif channel == button_pin2:
@@ -183,17 +185,69 @@ def risk_refresh_display():
     disp.image(image)
     disp.display()
 
+def nacho_turn():
+    global risk_nacho_turn_counter
+    
+    risk_nacho_turn_counter += 1
+    nacho_response = ""
+    #print(str(risk_nacho_turn_counter))#debugging
+
+    draw.rectangle((0,0,width,height), outline=0, fill=0)
+    
+    if risk_nacho_turn_counter == 1:
+        #nacho_response = "NACHO TURN"
+        draw.text((width/3, height/4), "NACHO TURN", font=font, fill=255)
+        disp.image(image)
+        disp.display()
+        time.sleep(2)
+    elif risk_nacho_turn_counter == 2:
+        draw.text((width/3, 0), "Trying to", font=font, fill=255)
+        draw.text((width/3, 10), "rig the", font=font, fill=255)
+        draw.text((width/3, 20), "score?", font=font, fill=255)
+        disp.image(image)
+        disp.display()
+        time.sleep(3)
+    elif risk_nacho_turn_counter == 3:
+        draw.text((width/3, height/4), "Alright", font=font, fill=255)
+        disp.image(image)
+        disp.display()
+        time.sleep(2)
+    else:
+        risk_refresh_display
+        return
+
+    risk_refresh_display()
+    
+
 def risk_add_player_score(player):
     global risk_player_1_score
     global risk_player_2_score
     global risk_game_state
+    global risk_player_state
+    global risk_nacho_turn_counter
 
     if player == 1:
-        risk_player_1_score +=1
-        risk_player_2_score -= 1
+        if risk_player_state == True:
+            #print("1")#debugging
+            risk_player_1_score +=1
+            risk_player_2_score -= 1
+        else:
+            #print("2")#debugging
+            nacho_turn()
+            if risk_nacho_turn_counter > 3:
+                risk_player_1_score +=1
+                risk_player_2_score -= 1
     elif player == 2:
-        risk_player_2_score += 1
-        risk_player_1_score -= 1
+        if risk_player_state == False:
+            #print("3")#debugging
+            risk_player_2_score += 1
+            risk_player_1_score -= 1
+        else:
+            #print("4")#debugging
+            nacho_turn()
+            if risk_nacho_turn_counter > 3:
+                risk_player_2_score += 1
+                risk_player_1_score -= 1
 
     if risk_player_1_score == 0 or risk_player_2_score == 0:
         risk_game_state = False
@@ -206,6 +260,9 @@ def risk_add_player_score(player):
 def risk_game_over():
     global risk_player_1_score
     global risk_player_2_score
+    global risk_nacho_turn_counter
+
+    risk_nacho_turn_counter = 0
 
     GPIO.remove_event_detect(button_pin)
     GPIO.remove_event_detect(button_pin2)
@@ -317,6 +374,8 @@ def risk_attached_button_callback(channel):
     global risk_player_1_score
     global risk_player_2_score
     global risk_current_turn_troop_counter
+    global risk_nacho_turn_counter
+    risk_nacho_turn_counter = 0
     
     risk_player_state = not risk_player_state
     if risk_player_state == True:
@@ -332,6 +391,8 @@ def play_risk():
     global risk_player_2_score
     global risk_game_state
     global risk_current_turn_troop_counter
+    global risk_nacho_turn_counter
+    risk_nacho_turn_counter = 0
     
     risk_player_1_score = 21
     risk_player_2_score = 21
@@ -374,8 +435,6 @@ def play_risk():
     disp.clear()
     disp.display()
     
-    
-
     risk_player_1_score = 21
     risk_player_2_score = 21
     risk_game_state = True
@@ -416,7 +475,6 @@ try:
             draw.text((width/3, 2*(height/4)), "Chess >", font=font, fill=255)
             disp.image(image)
             disp.display()
-        print("menu screen button clicked")
         
         time.sleep(60)
         
